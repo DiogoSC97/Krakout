@@ -1,0 +1,3 @@
+﻿  Cliente.cpp
+d:\documentos\isec\2ºano\2ºsemestre\so2\tp\krakout\cliente\cliente.cpp(37): warning C4101: 'versao': variável local não referenciada
+  Cliente.vcxproj -> D:\Documentos\ISEC\2ºAno\2ºSemestre\SO2\TP\Krakout\Debug\Cliente.exe
