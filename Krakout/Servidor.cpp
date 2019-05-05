@@ -115,6 +115,7 @@ DWORD WINAPI Thread(LPVOID) {
 	int i, x, y, limX, limY;
 	DadosCtrl cDados;
 	Bola bola;
+	int flagX, flagY;
 
 	iniciaMemTeste(&cDados);
 
@@ -124,15 +125,22 @@ DWORD WINAPI Thread(LPVOID) {
 	limY = consolaAltura();
 	x = rand() % consolaLargura();
 	y = rand() % consolaAltura();
+
+	flagX = 0; flagY = 0;
 	while (1) {
-		x++;
-		if (x > limX) {
-			y++;
-			x = 0;
-		}
+		if (flagX == 0 && flagY == 0) { x++; y++; }
+		if (flagX == 0 && flagY == 1) { x++; y--; }
+		if (flagX == 1 && flagY == 0) { x--; y++; }
+		if (flagX == 1 && flagY == 1) { x--; y--; }
+
+		if (x > limX) flagX = 1;
+		if (x < 0) flagX = 0;
+		if (y > limY - 2) flagY = 1;
+		if (y < 0) flagY = 0;
+
 		bola.x = x;
 		bola.y = y;
-		escreveBola(&cDados,&bola);
+		escreveBola(&cDados, &bola);
 		Sleep(16.66667);
 	}
 

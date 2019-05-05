@@ -1,1 +1,6 @@
-﻿  Krakout.vcxproj -> D:\Documentos\ISEC\2ºAno\2ºSemestre\SO2\TP\Krakout\Debug\Servidor.exe
+﻿  Servidor.cpp
+d:\documentos\isec\2ºano\2ºsemestre\so2\tp\krakout\krakout\servidor.cpp(31): warning C4101: 'top10get': variável local não referenciada
+d:\documentos\isec\2ºano\2ºsemestre\so2\tp\krakout\krakout\servidor.cpp(144): warning C4244: 'argumento': conversão de 'double' para 'DWORD', possível perda de dados
+d:\documentos\isec\2ºano\2ºsemestre\so2\tp\krakout\krakout\servidor.cpp(115): warning C4101: 'i': variável local não referenciada
+d:\documentos\isec\2ºano\2ºsemestre\so2\tp\krakout\krakout\servidor.cpp(91): warning C4715: 'getTop10': nem todos os caminhos de controle retornam um valor
+  Krakout.vcxproj -> D:\Documentos\ISEC\2ºAno\2ºSemestre\SO2\TP\Krakout\Debug\Servidor.exe
