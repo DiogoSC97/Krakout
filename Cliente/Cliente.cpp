@@ -2,20 +2,66 @@
 //
 
 #include "pch.h"
-#include <iostream>
+#include "../DLL/DLL.h"
+#include <tchar.h>
+#include <io.h>
+#include <fcntl.h>
+#include <stdio.h>
 
-int main()
-{
-    std::cout << "Hello World!\n"; 
+
+bool iniciaMemTeste(DadosCtrl * cDados);
+void gotoxy(int x, int y);
+
+int _tmain(int argc, TCHAR *argv[]) {
+
+#ifdef UNICODE
+	_setmode(_fileno(stdin), _O_WTEXT);
+	_setmode(_fileno(stdout), _O_WTEXT);
+	_setmode(_fileno(stderr), _O_WTEXT);
+#endif
+
+	DadosCtrl cDados;
+	Bola bola;
+
+	iniciaMemTeste(&cDados);
+
+	
+	while (true)
+	{
+		leBola(&cDados, &bola);
+		system("cls");
+		gotoxy(bola.x, bola.y);
+		_tprintf(TEXT("O"));
+	}
+	
+	
 }
 
-// Executar programa: Ctrl + F5 ou Menu Depurar > Iniciar Sem Depuração
-// Depurar programa: F5 ou menu Depurar > Iniciar Depuração
+bool iniciaMemTeste(DadosCtrl * cDados) {
 
-// Dicas para Começar: 
-//   1. Use a janela do Gerenciador de Soluções para adicionar/gerenciar arquivos
-//   2. Use a janela do Team Explorer para conectar-se ao controle do código-fonte
-//   3. Use a janela de Saída para ver mensagens de saída do build e outras mensagens
-//   4. Use a janela Lista de Erros para exibir erros
-//   5. Ir Para o Projeto > Adicionar Novo Item para criar novos arquivos de código, ou Projeto > Adicionar Item Existente para adicionar arquivos de código existentes ao projeto
-//   6. No futuro, para abrir este projeto novamente, vá para Arquivo > Abrir > Projeto e selecione o arquivo. sln
+	cDados->hMapFileTeste = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(int), TEXT("fmTeste"));
+	if (cDados->hMapFileTeste == NULL) {
+		_tprintf(TEXT("Erro ao mapear memória partilhada! (%d)"), GetLastError());
+		return FALSE;
+	}
+
+	cDados->bola = (Bola*)MapViewOfFile(cDados->hMapFileTeste, FILE_MAP_WRITE, 0, 0, sizeof(Bola));
+
+	cDados->hMutexTeste = CreateMutex(NULL, FALSE, TEXT("mutexTeste"));
+	if (cDados->hMutexTeste == NULL) {
+		_tprintf(TEXT("Erro ao criar o mutex! (%d)"), GetLastError());
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+void gotoxy(int x, int y) {
+	static HANDLE hStdout = NULL;
+	COORD coord;
+	coord.X = x;
+	coord.Y = y;
+	if (!hStdout)
+		hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleCursorPosition(hStdout, coord);
+}
