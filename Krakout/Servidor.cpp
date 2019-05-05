@@ -35,7 +35,7 @@ int _tmain(int argc, TCHAR *argv[]) {
 
 
 	setTop10(top10set);
-	_tprintf(TEXT("Top 10: %s,%d,%d\n\n"), getTop10());
+	_tprintf(TEXT("Top 10: %s\n\n"), getTop10());
 
 
 	//Demo bola
@@ -70,11 +70,10 @@ int setTop10(TCHAR * top10) {
 TCHAR * getTop10() {
 	HKEY chave;
 	DWORD resultado, tamanho;
-	TCHAR top10[TAM];
-	TCHAR msgErro[] = TEXT("Erro ao criar/abrir chave!");
+	TCHAR * top10 = new TCHAR[TAM];
 
 	if (RegCreateKeyEx(HKEY_CURRENT_USER, TEXT("Software\\Krakout"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &chave, &resultado) != ERROR_SUCCESS) {
-		return msgErro;
+		return (TCHAR*)TEXT("Erro ao criar/abrir chave!");
 	}
 	else {
 		if (resultado == REG_OPENED_EXISTING_KEY) {
@@ -86,7 +85,7 @@ TCHAR * getTop10() {
 		}
 		else if (resultado == REG_CREATED_NEW_KEY) {
 			RegCloseKey(chave);
-			return msgErro;
+			return (TCHAR*)TEXT("Erro ao criar/abrir chave!");
 		}
 	}
 }

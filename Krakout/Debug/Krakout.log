@@ -1,12 +1,1 @@
-﻿  Servidor.cpp
-d:\documentos\isec\2ºano\2ºsemestre\so2\tp\krakout\krakout\servidor.cpp(38): warning C4473: 'wprintf' : não há argumentos suficientes transmitidos para a cadeia de caracteres de formato
-  d:\documentos\isec\2ºano\2ºsemestre\so2\tp\krakout\krakout\servidor.cpp(38): note: espaços reservados e seus parâmetros esperam 3 argumentos variadic, mas 1 foram fornecidos
-  d:\documentos\isec\2ºano\2ºsemestre\so2\tp\krakout\krakout\servidor.cpp(38): note: o argumento variadic 2 ausente é requerido pela cadeia de formato '%d'
-d:\documentos\isec\2ºano\2ºsemestre\so2\tp\krakout\krakout\servidor.cpp(31): warning C4101: 'top10get': variável local não referenciada
-d:\documentos\isec\2ºano\2ºsemestre\so2\tp\krakout\krakout\servidor.cpp(137): warning C4244: 'argumento': conversão de 'double' para 'DWORD', possível perda de dados
-d:\documentos\isec\2ºano\2ºsemestre\so2\tp\krakout\krakout\servidor.cpp(116): warning C4101: 'i': variável local não referenciada
-d:\documentos\isec\2ºano\2ºsemestre\so2\tp\krakout\krakout\servidor.cpp(92): warning C4715: 'getTop10': nem todos os caminhos de controle retornam um valor
-d:\documentos\isec\2ºano\2ºsemestre\so2\tp\krakout\krakout\servidor.cpp(77): warning C4172: retornando o endereço da variável local ou temporário: msgErro
-d:\documentos\isec\2ºano\2ºsemestre\so2\tp\krakout\krakout\servidor.cpp(85): warning C4172: retornando o endereço da variável local ou temporário: top10
-d:\documentos\isec\2ºano\2ºsemestre\so2\tp\krakout\krakout\servidor.cpp(89): warning C4172: retornando o endereço da variável local ou temporário: msgErro
-LINK : fatal error LNK1168: não foi possível abrir D:\Documentos\ISEC\2ºAno\2ºSemestre\SO2\TP\Krakout\Debug\Servidor.exe para escrita
+﻿  Krakout.vcxproj -> D:\Documentos\ISEC\2ºAno\2ºSemestre\SO2\TP\Krakout\Debug\Servidor.exe
