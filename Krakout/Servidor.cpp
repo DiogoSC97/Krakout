@@ -39,7 +39,7 @@ int _tmain(int argc, TCHAR *argv[]) {
 
 
 	//Demo bola
-	_tprintf(TEXT("Lançar thread (S/N)?"));
+	_tprintf(TEXT("Lancar thread (S/N)?"));
 	_tscanf_s(TEXT("%c"), &resp, 1);
 	if (resp == 'S' || resp == 's') {
 		hT = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Thread, NULL, 0, &threadId);
@@ -92,7 +92,7 @@ TCHAR * getTop10() {
 
 
 
-bool iniciaMemTeste(DadosCtrl * cDados) {							// O servidor é que mapeia a memória e cria o mutex. O cliente vai abrir a zona de memória e mutex posteriormente
+bool iniciaMemTeste(DadosCtrl * cDados) {
 
 	cDados->hMapFileTeste = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(int), TEXT("fmTeste"));
 	if (cDados->hMapFileTeste == NULL) {
@@ -100,7 +100,7 @@ bool iniciaMemTeste(DadosCtrl * cDados) {							// O servidor é que mapeia a me
 		return FALSE;
 	}
 
-	cDados->bola = (Bola*)MapViewOfFile(cDados->hMapFileTeste, FILE_MAP_WRITE, 0, 0, sizeof(Bola));
+	cDados->jogo = (Jogo*)MapViewOfFile(cDados->hMapFileTeste, FILE_MAP_WRITE, 0, 0, sizeof(Jogo));
 
 	cDados->hMutexTeste = CreateMutex(NULL, FALSE, TEXT("mutexTeste"));
 	if (cDados->hMutexTeste == NULL) {
@@ -114,7 +114,7 @@ bool iniciaMemTeste(DadosCtrl * cDados) {							// O servidor é que mapeia a me
 DWORD WINAPI Thread(LPVOID) {
 	int i, x, y, limX, limY;
 	DadosCtrl cDados;
-	Bola bola;
+	Jogo jogo;
 	int flagX, flagY;
 
 	iniciaMemTeste(&cDados);
@@ -138,9 +138,9 @@ DWORD WINAPI Thread(LPVOID) {
 		if (y > limY - 2) flagY = 1;
 		if (y < 0) flagY = 0;
 
-		bola.x = x;
-		bola.y = y;
-		escreveBola(&cDados, &bola);
+		jogo.bolas[0].x = x;
+		jogo.bolas[0].y = y;
+		escreveJogo(&cDados, &jogo);
 		Sleep(16.66667);
 	}
 

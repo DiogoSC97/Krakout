@@ -21,16 +21,16 @@ int _tmain(int argc, TCHAR *argv[]) {
 #endif
 
 	DadosCtrl cDados;
-	Bola bola;
+	Jogo jogo;
 
 	iniciaMemTeste(&cDados);
 
 	
 	while (true)
 	{
-		leBola(&cDados, &bola);
+		leJogo(&cDados, &jogo);
 		system("cls");
-		gotoxy(bola.x, bola.y);
+		gotoxy(jogo.bolas[0].x, jogo.bolas[0].y);
 		_tprintf(TEXT("O"));
 	}
 	
@@ -45,7 +45,7 @@ bool iniciaMemTeste(DadosCtrl * cDados) {
 		return FALSE;
 	}
 
-	cDados->bola = (Bola*)MapViewOfFile(cDados->hMapFileTeste, FILE_MAP_WRITE, 0, 0, sizeof(Bola));
+	cDados->jogo = (Jogo*)MapViewOfFile(cDados->hMapFileTeste, FILE_MAP_WRITE, 0, 0, sizeof(Jogo));
 
 	cDados->hMutexTeste = CreateMutex(NULL, FALSE, TEXT("mutexTeste"));
 	if (cDados->hMutexTeste == NULL) {

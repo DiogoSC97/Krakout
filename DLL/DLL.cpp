@@ -4,15 +4,15 @@
 #include"DLL.h"
 
 
-void escreveBola(DadosCtrl * cDados, Bola * bola) {
+void escreveJogo(DadosCtrl * cDados, Jogo * jogo) {
 	WaitForSingleObject(cDados->hMutexTeste, INFINITE);
-	CopyMemory(cDados->bola, bola, sizeof(Bola));
+	CopyMemory(cDados->jogo, jogo, sizeof(Jogo));
 	ReleaseMutex(cDados->hMutexTeste);
 }
 
 
-void leBola(DadosCtrl * cDados, Bola * bola) {
+void leJogo(DadosCtrl * cDados, Jogo * jogo) {
 	WaitForSingleObject(cDados->hMutexTeste, INFINITE);
-	CopyMemory(bola, cDados->bola, sizeof(Bola));
+	CopyMemory(jogo, cDados->jogo, sizeof(Jogo));
 	ReleaseMutex(cDados->hMutexTeste);
 }

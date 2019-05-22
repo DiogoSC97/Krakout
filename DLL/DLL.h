@@ -7,11 +7,49 @@
 
 typedef struct {
 	int x, y;
+	float vel;
+	HBITMAP bm1, bm2;
 }Bola;
 
 typedef struct {
-	HANDLE hMapFileTeste, hMutexTeste;
-	Bola * bola;
+	int x, y, tam;
+	float vel;
+	HBITMAP bm1, bm2;
+}Barreira;
+
+typedef struct {
+	TCHAR tipo[12];	//Speed-up	-ou-	Slow-down	-ou-	Vida-extra	-ou-	Triple
+	int x, y, tam, duracao;
+	float vel;
+	HBITMAP bm1, bm2;
+}Brinde;
+
+typedef struct {
+	TCHAR tipo[12];	//normal	-ou-	resistente	-ou-	mágico
+	int x, y, tam, colisoes;
+	//float vel;
+	HBITMAP bm1, bm2;
+	Brinde brinde;
+}Tijolo;
+
+
+
+typedef struct {
+	TCHAR nome[24];
+	int pontuacao;
+}Jogador;
+
+typedef struct {
+	Barreira barreiras[2]; //Max 2 jogadores. Pode sofrer alterações.	Jogador[0] -> Barreira[0] e Jogador[0] -> Barreira[0]
+	Tijolo tijolos[24];	//Max 24 tijolos. Pode sofrer alterações.
+	Brinde brindes[6]; //Max 6 brindes a cair. Pode sofrer alterações.
+	Bola bolas[3]; //Max 3 bolas em jogo(1 normal, 3 com powerup). Pode sofrer alterações (por causa do multiplayer).
+	Jogador jogadores[2]; //Max 3 bolas em jogo(1 normal, 3 com powerup). Pode sofrer alterações.
+}Jogo;
+
+typedef struct {
+	HANDLE hMapFileTeste, hMutexTeste;	//Mudar nome do Mutex depois da demonstração
+	Jogo * jogo;
 }DadosCtrl;
 
 #ifdef DLL_EXPORTS
@@ -22,6 +60,6 @@ typedef struct {
 extern "C"
 {
 	//Funções a serem exportadas/importadas
-	DLL_IMP_API void escreveBola(DadosCtrl * cDados, Bola * bola);
-	DLL_IMP_API void leBola(DadosCtrl * cDados, Bola * bola);
+	DLL_IMP_API void escreveJogo(DadosCtrl * cDados, Jogo * jogo);
+	DLL_IMP_API void leJogo(DadosCtrl * cDados, Jogo * jogo);
 }
