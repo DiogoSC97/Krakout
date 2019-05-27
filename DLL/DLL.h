@@ -48,8 +48,20 @@ typedef struct {
 }Jogo;
 
 typedef struct {
-	HANDLE hMapFileTeste, hMutexTeste, hEventJogo;	//Mudar nome do Mutex depois da demonstração
+	char nomeJogador[24];
+	char msg[24];				//Alterar depois se necessário
+}Mensagem;
+
+typedef struct {
+	char msgs[12];				//Alterar depois se necessário
+	int in, out;
+}MSG_PARTILHADA;
+
+typedef struct {
+	HANDLE hMapFileJogo, hMutexJogo, hEventJogo;	//Mudar nome do Mutex depois da demonstração
+	HANDLE hMapFileMsg, hSemPodeEscrever, hSemPodeLer, hMutexIndiceMsgIn, hMutexIndiceMsgOut;
 	Jogo * jogo;
+	MSG_PARTILHADA * msg;
 }DadosCtrl;
 
 #ifdef DLL_EXPORTS
@@ -62,4 +74,7 @@ extern "C"
 	//Funções a serem exportadas/importadas
 	DLL_IMP_API void escreveJogo(DadosCtrl * cDados, Jogo * jogo);
 	DLL_IMP_API void leJogo(DadosCtrl * cDados, Jogo * jogo);
+	
+	DLL_IMP_API void leMsg(DadosCtrl * cDados, Mensagem * msg);
+	DLL_IMP_API void escreveMsg(DadosCtrl * cDados, Mensagem * msg);
 }

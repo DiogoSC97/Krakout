@@ -9,7 +9,7 @@
 #include <stdio.h>
 
 
-bool iniciaMemTeste(DadosCtrl * cDados);
+bool iniciaMemJogo(DadosCtrl * cDados);
 void gotoxy(int x, int y);
 
 int _tmain(int argc, TCHAR *argv[]) {
@@ -23,7 +23,7 @@ int _tmain(int argc, TCHAR *argv[]) {
 	DadosCtrl cDados;
 	Jogo jogo;
 
-	iniciaMemTeste(&cDados);
+	iniciaMemJogo(&cDados);
 
 	
 	while (true)
@@ -37,18 +37,22 @@ int _tmain(int argc, TCHAR *argv[]) {
 	
 }
 
-bool iniciaMemTeste(DadosCtrl * cDados) {
+bool iniciaMemJogo(DadosCtrl * cDados) {
 
-	cDados->hMapFileTeste = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(int), TEXT("fmTeste"));
-	if (cDados->hMapFileTeste == NULL) {
+	cDados->hMapFileJogo = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(int), TEXT("fmJogo"));
+	if (cDados->hMapFileJogo == NULL) {
 		_tprintf(TEXT("Erro ao mapear memória partilhada! (%d)"), GetLastError());
 		return FALSE;
 	}
 
-	cDados->jogo = (Jogo*)MapViewOfFile(cDados->hMapFileTeste, FILE_MAP_WRITE, 0, 0, sizeof(Jogo));
+	cDados->jogo = (Jogo*)MapViewOfFile(cDados->hMapFileJogo, FILE_MAP_WRITE, 0, 0, sizeof(Jogo));
+	if (cDados->jogo == NULL) {
+		_tprintf(TEXT("Erro ao criar view da memoria!"));
+		return 0;
+	}
 
-	cDados->hMutexTeste = CreateMutex(NULL, FALSE, TEXT("mutexTeste"));
-	if (cDados->hMutexTeste == NULL) {
+	cDados->hMutexJogo = CreateMutex(NULL, FALSE, TEXT("mutexJogo"));
+	if (cDados->hMutexJogo == NULL) {
 		_tprintf(TEXT("Erro ao criar o mutex! (%d)"), GetLastError());
 		return FALSE;
 	}
@@ -61,6 +65,25 @@ bool iniciaMemTeste(DadosCtrl * cDados) {
 
 	return TRUE;
 }
+
+
+bool iniciaMemMsg(DadosCtrl * cDados) {
+
+	cDados->hMapFileMsg = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(int), TEXT("fmMsg"));
+	if (cDados->hMapFileMsg == NULL) {
+		_tprintf(TEXT("Erro ao mapear memória partilhada! (%d)"), GetLastError());
+		return FALSE;
+	}
+
+	cDados->msg = (MSG_PARTILHADA*)MapViewOfFile(cDados->hMapFileMsg, FILE_MAP_WRITE, 0, 0, sizeof(MSG_PARTILHADA));
+	if (cDados->msg == NULL) {
+		_tprintf(TEXT("Erro ao criar view da memoria!"));
+		return 0;
+	}
+
+	return TRUE;
+}
+
 
 void gotoxy(int x, int y) {
 	static HANDLE hStdout = NULL;

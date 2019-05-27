@@ -92,18 +92,22 @@ TCHAR * getTop10() {
 
 
 
-bool iniciaMemTeste(DadosCtrl * cDados) {
+bool iniciaMemJogo(DadosCtrl * cDados) {
 
-	cDados->hMapFileTeste = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(int), TEXT("fmTeste"));
-	if (cDados->hMapFileTeste == NULL) {
+	cDados->hMapFileJogo = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(int), TEXT("fmJogo"));
+	if (cDados->hMapFileJogo == NULL) {
 		_tprintf(TEXT("Erro ao mapear memória partilhada! (%d)"), GetLastError());
 		return FALSE;
 	}
 
-	cDados->jogo = (Jogo*)MapViewOfFile(cDados->hMapFileTeste, FILE_MAP_WRITE, 0, 0, sizeof(Jogo));
+	cDados->jogo = (Jogo*)MapViewOfFile(cDados->hMapFileJogo, FILE_MAP_WRITE, 0, 0, sizeof(Jogo));
+	if (cDados->jogo == NULL) {
+		_tprintf(TEXT("Erro ao criar view da memoria!"));
+		return 0;
+	}
 
-	cDados->hMutexTeste = CreateMutex(NULL, FALSE, TEXT("mutexTeste"));
-	if (cDados->hMutexTeste == NULL) {
+	cDados->hMutexJogo = CreateMutex(NULL, FALSE, TEXT("mutexJogo"));
+	if (cDados->hMutexJogo == NULL) {
 		_tprintf(TEXT("Erro ao criar o mutex! (%d)"), GetLastError());
 		return FALSE;
 	}
@@ -117,13 +121,56 @@ bool iniciaMemTeste(DadosCtrl * cDados) {
 	return TRUE;
 }
 
+
+bool iniciaMemMsg(DadosCtrl * cDados) {
+
+	cDados->hMapFileMsg = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(int), TEXT("fmMsg"));
+	if (cDados->hMapFileMsg == NULL) {
+		_tprintf(TEXT("Erro ao mapear memória partilhada! (%d)"), GetLastError());
+		return FALSE;
+	}
+
+	cDados->msg = (MSG_PARTILHADA*)MapViewOfFile(cDados->hMapFileMsg, FILE_MAP_WRITE, 0, 0, sizeof(MSG_PARTILHADA));
+	if (cDados->msg == NULL) {
+		_tprintf(TEXT("Erro ao criar view da memoria!"));
+		return 0;
+	}
+
+	cDados->hMutexIndiceMsgIn = CreateMutex(NULL, FALSE, TEXT("mutexMsgIn"));
+	if (cDados->hMutexIndiceMsgIn == NULL) {
+		_tprintf(TEXT("Erro ao criar o mutex! (%d)"), GetLastError());
+		return FALSE;
+	}
+
+	cDados->hMutexIndiceMsgOut = CreateMutex(NULL, FALSE, TEXT("mutexMsgOut"));
+	if (cDados->hMutexIndiceMsgOut == NULL) {
+		_tprintf(TEXT("Erro ao criar o mutex! (%d)"), GetLastError());
+		return FALSE;
+	}
+
+	cDados->hSemPodeLer = CreateSemaphore(NULL, 12, 12, TEXT("semaforoMsgPodeLer"));				//Alterar o nº consoante o nº de mensagens
+	if (cDados->hSemPodeLer == NULL) {
+		_tprintf(TEXT("Erro ao criar o semáforo relativo a ler as mensagens! (%d)"), GetLastError());
+		return FALSE;
+	}
+	
+	cDados->hSemPodeEscrever = CreateSemaphore(NULL, 12, 12, TEXT("semaforoMsgPodeEscrever"));		//Alterar o nº consoante o nº de mensagens
+	if (cDados->hSemPodeEscrever == NULL) {
+		_tprintf(TEXT("Erro ao criar o semáforo relativo a escrever as mensagens! (%d)"), GetLastError());
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+
 DWORD WINAPI Thread(LPVOID) {
 	int i, x, y, limX, limY;
 	DadosCtrl cDados;
 	Jogo jogo;
 	int flagX, flagY;
 
-	iniciaMemTeste(&cDados);
+	iniciaMemJogo(&cDados);
 
 	srand((int)time(NULL));
 
