@@ -8,10 +8,13 @@ void escreveJogo(DadosCtrl * cDados, Jogo * jogo) {
 	WaitForSingleObject(cDados->hMutexTeste, INFINITE);
 	CopyMemory(cDados->jogo, jogo, sizeof(Jogo));
 	ReleaseMutex(cDados->hMutexTeste);
+	SetEvent(cDados->hEventJogo);
 }
 
 
 void leJogo(DadosCtrl * cDados, Jogo * jogo) {
+	WaitForSingleObject(cDados->hEventJogo, INFINITE);
+	ResetEvent(cDados->hEventJogo);
 	WaitForSingleObject(cDados->hMutexTeste, INFINITE);
 	CopyMemory(jogo, cDados->jogo, sizeof(Jogo));
 	ReleaseMutex(cDados->hMutexTeste);

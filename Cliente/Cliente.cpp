@@ -53,6 +53,12 @@ bool iniciaMemTeste(DadosCtrl * cDados) {
 		return FALSE;
 	}
 
+	cDados->hEventJogo = CreateEvent(NULL, TRUE, FALSE, TEXT("EventoJogo"));
+	if (cDados->hEventJogo == NULL) {
+		_tprintf(TEXT("Erro ao criar o evento relativo ao jogo! (%d)"), GetLastError());
+		return FALSE;
+	}
+
 	return TRUE;
 }
 

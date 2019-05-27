@@ -48,7 +48,7 @@ typedef struct {
 }Jogo;
 
 typedef struct {
-	HANDLE hMapFileTeste, hMutexTeste;	//Mudar nome do Mutex depois da demonstração
+	HANDLE hMapFileTeste, hMutexTeste, hEventJogo;	//Mudar nome do Mutex depois da demonstração
 	Jogo * jogo;
 }DadosCtrl;
 
