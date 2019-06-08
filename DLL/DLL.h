@@ -69,8 +69,9 @@ typedef struct {
 #else
 #define DLL_IMP_API __declspec(dllimport)
 #endif
-extern "C"
-{
+
+extern "C" {
+
 	//Funções a serem exportadas/importadas
 	DLL_IMP_API void escreveJogo(DadosCtrl * cDados, Jogo * jogo);
 	DLL_IMP_API void leJogo(DadosCtrl * cDados, Jogo * jogo);
