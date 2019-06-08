@@ -6,18 +6,27 @@
 #include <io.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <string.h>
+#include <atlstr.h>
+#include <cstring>
 
 #define TAM 200
 
-
 int setTop10(TCHAR * top10);
 TCHAR * getTop10();
-bool iniciaMemTeste(DadosCtrl * cDados);
+bool iniciaMemJogo(DadosCtrl * cDados);
 DWORD WINAPI Thread(LPVOID);
-void gotoxy(int x, int y);
 int consolaAltura();
 int consolaLargura();
+DWORD WINAPI trataMensagem(LPVOID * m);
+DWORD WINAPI recebeMensagemMem(LPVOID);
+void moveJogador(TCHAR * nomeJogador, TCHAR * direcao);
+void setupJogo();
+void moveBola(int x, int y, int nBola);
+int verificaColisaoTijolos(int x, int y);
+int verificaColisaoBarreiras(int x, int y);
 
+Jogo j;	//Temp
 
 int _tmain(int argc, TCHAR *argv[]) {
 	
@@ -42,6 +51,9 @@ int _tmain(int argc, TCHAR *argv[]) {
 	_tprintf(TEXT("Lancar thread (S/N)?"));
 	_tscanf_s(TEXT("%c"), &resp, 1);
 	if (resp == 'S' || resp == 's') {
+
+		setupJogo();
+
 		hT = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Thread, NULL, 0, &threadId);
 		WaitForSingleObject(hT, INFINITE);
 	}
@@ -160,6 +172,12 @@ bool iniciaMemMsg(DadosCtrl * cDados) {
 		return FALSE;
 	}
 
+	cDados->hEventMsg = CreateEvent(NULL, TRUE, FALSE, TEXT("EventoMensagem"));
+	if (cDados->hEventMsg == NULL) {
+		_tprintf(TEXT("Erro ao criar o evento relativo às mensagens! (%d)"), GetLastError());
+		return FALSE;
+	}
+
 	return TRUE;
 }
 
@@ -181,18 +199,19 @@ DWORD WINAPI Thread(LPVOID) {
 
 	flagX = 0; flagY = 0;
 	while (1) {
-		if (flagX == 0 && flagY == 0) { x++; y++; }
-		if (flagX == 0 && flagY == 1) { x++; y--; }
-		if (flagX == 1 && flagY == 0) { x--; y++; }
-		if (flagX == 1 && flagY == 1) { x--; y--; }
+		if (flagX == 0 && flagY == 0) { x++; y++; }												//			\. 
+		else if (flagX == 0 && flagY == 1) { x++; y--; }		//    /'
+		else if (flagX == 1 && flagY == 0) { x--; y++; }		//			./
+		else if (flagX == 1 && flagY == 1) { x--; y--; }		//    '\
 
 		if (x > limX) flagX = 1;
-		if (x < 0) flagX = 0;
-		if (y > limY - 2) flagY = 1;
-		if (y < 0) flagY = 0;
+		if (x < 0)flagX = 0;
+		if (y > limY - 2 || verificaColisaoBarreiras(x, y)) flagY = 1;
+		if (y < 0 || verificaColisaoTijolos(x, y)) flagY = 0;
 
 		jogo.bolas[0].x = x;
 		jogo.bolas[0].y = y;
+		
 		escreveJogo(&cDados, &jogo);
 		Sleep(16.66667);
 	}
@@ -215,4 +234,144 @@ int consolaLargura() {
 	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
 
 	return csbi.srWindow.Right - csbi.srWindow.Left + 1;
+}
+
+DWORD WINAPI recebeMensagemMem(LPVOID) {
+	DadosCtrl cDados;
+
+	Mensagem msg;
+	BOOL ret;
+	DWORD n;
+	HANDLE hT;
+
+	while (1) {
+		WaitForSingleObject(&cDados.hEventMsg, INFINITE);
+		ResetEvent(&cDados.hEventMsg);
+
+		leMsg(&cDados, &msg);
+		CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)trataMensagem, &msg, 0, NULL);
+	}
+}
+
+DWORD WINAPI trataMensagem(LPVOID * m) {
+
+	Mensagem * msg = (Mensagem*)m;
+	TCHAR * token;
+	const char delimiter[2] = " ";
+	TCHAR * pedido[2];
+	int n = 0, i;
+
+	for (int i = 0; i < (sizeof(msg->msg)/sizeof(TCHAR)); i++)	{
+		if (msg->msg[i] == ' ') {
+			pedido[n][i] = '\0';
+			n = 1;
+		}
+		pedido[n][i] = msg->msg[i];
+	}
+
+	if (_tcscmp(pedido[0], TEXT("começar"))==0) {
+		//iniciar jogo
+	}
+	else if (_tcscmp(pedido[0], TEXT("move")) == 0) {
+		moveJogador(msg->nomeJogador, pedido[1]);
+	}
+	else if (_tcscmp(pedido[0], TEXT("login")) == 0) {
+		for (i = 0; i < 2; i++)	{
+			if (_tcscmp(j.jogadores[i].nome, pedido[1]) == 0)
+				return 0;		//Envia mensagem a informar que já existe um jogador com este nome
+			if (wcscpy_s(j.jogadores[i].nome, TEXT("")) == 0) {
+				wcscpy_s(j.jogadores[i].nome, pedido[1]);
+				break;
+			}
+		}
+	}
+
+}
+
+
+void moveBola(int x, int y, int nBola) {
+
+	Bola b = j.bolas[nBola];
+
+	if (x > 0 && x < consolaAltura() && y > 0 && y < consolaLargura()) {			//Verifica limites do campo de jogo
+		j.bolas[nBola].x = x;
+		j.bolas[nBola].y = y;
+	}
+
+
+}
+
+int verificaColisaoTijolos(int x, int y) {	// 1 - muda direcção	0 - não muda de direcção
+	
+	for (int i = 0; i < (sizeof(j.tijolos)/sizeof(Tijolo)); i++)				// Verifica colisão com tijolos
+	{
+		if (x < (j.tijolos[i].x + 35) && x > j.tijolos[i].x && y < (j.tijolos[i].y + 20) && y > j.tijolos[i].y && j.tijolos[i].colisoes > 0) {
+			j.tijolos[i].colisoes--;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int verificaColisaoBarreiras(int x, int y) {// 1 - muda direcção 	0 - não muda de direcção
+
+	for (int i = 0; i < (sizeof(j.barreiras) / sizeof(Barreira)); i++)				// Verifica colisão com barreiras
+	{
+		if (y < (j.barreiras[i].y + 9) && y > j.barreiras[i].y && x < (j.barreiras[i].x + j.barreiras[i].tam) && x > j.barreiras[i].x) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+void moveJogador(TCHAR * nomeJogador, TCHAR * direcao) {
+
+	int i;
+	Barreira bAtual, bNaoAtual;
+
+	for (i = 0; i < (sizeof(j.jogadores) / sizeof(Jogador)); i++)
+		if (_tcscmp(j.jogadores[i].nome, nomeJogador) == 0)
+			break;
+
+
+	if (j.barreiras[1].vel == -1) {										// Se só estiver um jogador em campo
+		return;
+	}
+	else {
+		if (i == 0) {
+			bAtual = j.barreiras[i];
+			bNaoAtual = j.barreiras[1];
+		}
+		else {
+			bAtual = j.barreiras[i];
+			bNaoAtual = j.barreiras[0];
+		}
+
+		if (_tcscmp(direcao, TEXT("direita")) == 0)
+			if (bAtual.x < consolaLargura() && (bAtual.x+bAtual.tam+1) < bNaoAtual.x)
+				j.barreiras[i].x += 1;
+
+			else if (_tcscmp(direcao, TEXT("esquerda")) == 0)
+				if (bAtual.x > 0 && bAtual.x > (bNaoAtual.x+bAtual.tam+1))
+					j.barreiras[i].x -= 1;
+	}
+}
+
+void setupJogo() {
+	
+	for (int i = 0; i < 2; i++){
+		wcscpy_s(j.jogadores[i].nome, TEXT(""));
+		j.barreiras[i].vel = 1;
+		j.barreiras[i].tam = 48;
+		j.barreiras[i].y = consolaAltura() - 9;
+		j.barreiras[i].x = consolaLargura() - j.barreiras[i].tam;
+	}
+
+	for (int i = 0; i < 1; i++){
+		for (int k = 0; k < (consolaLargura() / 35); k++){
+			j.tijolos[i].y = i * 20;
+			j.tijolos[i].x = k * 35;
+			j.tijolos[i].colisoes = 1;
+		}
+	}
 }

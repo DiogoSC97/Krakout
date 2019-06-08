@@ -35,7 +35,6 @@ void leMsg(DadosCtrl * cDados, Mensagem * msg){
 
 	ReleaseSemaphore(cDados->hSemPodeLer,1,NULL);
 
-
 }
 
 void escreveMsg(DadosCtrl * cDados, Mensagem * msg){

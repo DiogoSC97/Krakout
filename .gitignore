@@ -47,6 +47,8 @@ Cliente/Debug/Cliente.tlog/link.write.1.tlog
 .vs/Krakout/v15/ipch/AutoPCH/603f7d8c6555c6/SERVIDOR.ipch
 .vs/Krakout/v15/ipch/AutoPCH/14bdb9d729a89776/SERVIDOR.ipch
 .vs/Krakout/v15/ipch/AutoPCH/b1c8ed2341403276/GATEWAY.ipch
+Krakout/Debug/Servidor.tlog/CL.read.1.tlog
+Krakout/Debug/servidor.obj.enc
 .vs/Krakout/v15/ipch/ab6c32359bace0.ipch
 x64/Debug/DLL.dll
 x64/Debug/Cliente.pdb
@@ -148,7 +150,6 @@ Cliente/Debug/Cliente.tlog/CL.read.1.tlog
 Cliente/Debug/Cliente.tlog/CL.command.1.tlog
 Cliente/Debug/Cliente.pch
 Cliente/Cliente.vcxproj.filters
-Cliente/Cliente.vcxproj
 Krakout/Debug/pch.obj
 DLL/Debug/stdafx.obj
 DLL/Debug/dllmain.obj
@@ -174,3 +175,4 @@ Cliente/Debug/Cliente.Build.CppClean.log
 .vs/Krakout/v16/Solution.VC.db-wal
 .vs/Krakout/v16/Solution.VC.db-shm
 .vs/Krakout/v16/Browse.VC.opendb
+Cliente/Cliente.vcxproj

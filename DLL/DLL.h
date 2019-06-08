@@ -48,18 +48,18 @@ typedef struct {
 }Jogo;
 
 typedef struct {
-	char nomeJogador[24];
-	char msg[24];				//Alterar depois se necessário
+	TCHAR nomeJogador[24];
+	TCHAR msg[24];				//Alterar depois se necessário
 }Mensagem;
 
 typedef struct {
-	char msgs[12];				//Alterar depois se necessário
+	TCHAR msgs[12];				//Alterar depois se necessário
 	int in, out;
 }MSG_PARTILHADA;
 
 typedef struct {
 	HANDLE hMapFileJogo, hMutexJogo, hEventJogo;	//Mudar nome do Mutex depois da demonstração
-	HANDLE hMapFileMsg, hSemPodeEscrever, hSemPodeLer, hMutexIndiceMsgIn, hMutexIndiceMsgOut;
+	HANDLE hMapFileMsg, hSemPodeEscrever, hSemPodeLer, hMutexIndiceMsgIn, hMutexIndiceMsgOut, hEventMsg;
 	Jogo * jogo;
 	MSG_PARTILHADA * msg;
 }DadosCtrl;
