@@ -81,6 +81,36 @@ bool iniciaMemMsg(DadosCtrl * cDados) {
 		return 0;
 	}
 
+	cDados->hMutexIndiceMsgIn = CreateMutex(NULL, FALSE, TEXT("mutexMsgIn"));
+	if (cDados->hMutexIndiceMsgIn == NULL) {
+		_tprintf(TEXT("Erro ao criar o mutex! (%d)"), GetLastError());
+		return FALSE;
+	}
+
+	cDados->hMutexIndiceMsgOut = CreateMutex(NULL, FALSE, TEXT("mutexMsgOut"));
+	if (cDados->hMutexIndiceMsgOut == NULL) {
+		_tprintf(TEXT("Erro ao criar o mutex! (%d)"), GetLastError());
+		return FALSE;
+	}
+
+	cDados->hSemPodeLer = CreateSemaphore(NULL, 12, 12, TEXT("semaforoMsgPodeLer"));				//Alterar o nº consoante o nº de mensagens
+	if (cDados->hSemPodeLer == NULL) {
+		_tprintf(TEXT("Erro ao criar o semáforo relativo a ler as mensagens! (%d)"), GetLastError());
+		return FALSE;
+	}
+
+	cDados->hSemPodeEscrever = CreateSemaphore(NULL, 12, 12, TEXT("semaforoMsgPodeEscrever"));		//Alterar o nº consoante o nº de mensagens
+	if (cDados->hSemPodeEscrever == NULL) {
+		_tprintf(TEXT("Erro ao criar o semáforo relativo a escrever as mensagens! (%d)"), GetLastError());
+		return FALSE;
+	}
+
+	cDados->hEventMsg = CreateEvent(NULL, TRUE, FALSE, TEXT("EventoMensagem"));
+	if (cDados->hEventMsg == NULL) {
+		_tprintf(TEXT("Erro ao criar o evento relativo às mensagens! (%d)"), GetLastError());
+		return FALSE;
+	}
+
 	return TRUE;
 }
 
