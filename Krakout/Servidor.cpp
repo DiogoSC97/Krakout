@@ -16,7 +16,6 @@ int setTop10(TCHAR * top10);
 TCHAR * getTop10();
 bool iniciaMemJogo(DadosCtrl * cDados);
 DWORD WINAPI Thread(LPVOID);
-void gotoxy(int x, int y);
 int consolaAltura();
 int consolaLargura();
 DWORD WINAPI trataMensagem(LPVOID * m);
@@ -336,13 +335,7 @@ void moveJogador(TCHAR * nomeJogador, TCHAR * direcao) {
 
 
 	if (j.barreiras[1].vel == -1) {										// Se só estiver um jogador em campo
-		if (_tcscmp(direcao, TEXT("direita")) == 0)
-				if (j.barreiras[i].y < consolaLargura())
-					j.barreiras[i].y += 1;
-
-		else if (_tcscmp(direcao, TEXT("esquerda")) == 0)
-			if (j.barreiras[i].y > 0)
-				j.barreiras[i].y -= 1;
+		return;
 	}
 	else {
 		if (i == 0) {
@@ -355,12 +348,12 @@ void moveJogador(TCHAR * nomeJogador, TCHAR * direcao) {
 		}
 
 		if (_tcscmp(direcao, TEXT("direita")) == 0)
-			if (j.barreiras[i].y < consolaLargura() && (bAtual.y+150+1) < bNaoAtual.y)
-				j.barreiras[i].y += 1;
+			if (bAtual.x < consolaLargura() && (bAtual.x+bAtual.tam+1) < bNaoAtual.x)
+				j.barreiras[i].x += 1;
 
 			else if (_tcscmp(direcao, TEXT("esquerda")) == 0)
-				if (j.barreiras[i].y > 0 && bAtual.y > (bNaoAtual.y+150+1))
-					j.barreiras[i].y -= 1;
+				if (bAtual.x > 0 && bAtual.x > (bNaoAtual.x+bAtual.tam+1))
+					j.barreiras[i].x -= 1;
 	}
 }
 
