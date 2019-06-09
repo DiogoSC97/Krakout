@@ -463,15 +463,13 @@ bool iniciaMemMsg(DadosCtrl* cDados) {
 		return FALSE;
 	}
 
-<<<<<<< HEAD
-=======
+
 	cDados->hEventMsg = CreateEvent(NULL, TRUE, FALSE, TEXT("EventoMensagem"));
 	if (cDados->hEventMsg == NULL) {
 		_tprintf(TEXT("Erro ao criar o evento relativo às mensagens! (%d)"), GetLastError());
 		return FALSE;
 	}
 
->>>>>>> f655cbe54bce813f82e8b59380a732352d5176b9
 	return TRUE;
 }
 
