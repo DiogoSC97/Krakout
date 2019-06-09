@@ -29,7 +29,10 @@ void leMsg(DadosCtrl * cDados, Mensagem * msg){
 	WaitForSingleObject(cDados->hMutexIndiceMsgOut, INFINITE);
 
 	pos = cDados->msg->out;
-	cDados->msg->out++;
+	if (pos == 11)
+		cDados->msg->out = 0;
+	else
+		cDados->msg->out++;
 
 	ReleaseMutex(cDados->hMutexIndiceMsgOut);
 	
@@ -47,7 +50,10 @@ void escreveMsg(DadosCtrl * cDados, Mensagem * msg){
 	WaitForSingleObject(cDados->hMutexIndiceMsgIn, INFINITE);
 
 	pos = cDados->msg->in;
-	cDados->msg->in++;
+	if (pos == 11)
+		cDados->msg->in = 0;
+	else
+		cDados->msg->in++;
 
 	ReleaseMutex(cDados->hMutexIndiceMsgIn);
 

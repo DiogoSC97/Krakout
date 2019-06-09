@@ -179,3 +179,7 @@ Cliente/Debug/Cliente.Build.CppClean.log
 .vs/Krakout/v16/Solution.VC.db-wal
 .vs/Krakout/v16/Solution.VC.db-shm
 .vs/Krakout/v16/Browse.VC.opendb
+Debug/DLL.lib
+Debug/Servidor.exe
+Debug/DLL.dll
+Debug/Cliente.exe
