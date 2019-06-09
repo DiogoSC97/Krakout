@@ -27,6 +27,7 @@ int verificaColisaoTijolos(int x, int y);
 int verificaColisaoBarreiras(int x, int y);
 
 Jogo j;	//Temp
+HANDLE hMutexJogo;
 
 int _tmain(int argc, TCHAR *argv[]) {
 	
@@ -40,8 +41,13 @@ int _tmain(int argc, TCHAR *argv[]) {
 	TCHAR * top10get;
 	TCHAR resp;
 	DWORD threadId; //Id da thread a ser criada
-	HANDLE hT; //HANDLE/ponteiro para a thread a ser criada
+	HANDLE hT,hTMsg; //HANDLE/ponteiro para a thread a ser criada
 
+	hMutexJogo = CreateMutex(NULL, FALSE, TEXT("mutexJogoGlobal"));
+	if (hMutexJogo == NULL) {
+		_tprintf(TEXT("Erro ao criar o mutex! (%d)"), GetLastError());
+		return FALSE;
+	}
 
 	setTop10(top10set);
 	_tprintf(TEXT("Top 10: %s\n\n"), getTop10());
@@ -55,6 +61,8 @@ int _tmain(int argc, TCHAR *argv[]) {
 		setupJogo();
 
 		hT = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Thread, NULL, 0, &threadId);
+		hTMsg = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)recebeMensagemMem, NULL, 0, &threadId);
+
 		WaitForSingleObject(hT, INFINITE);
 	}
 
@@ -238,15 +246,22 @@ int consolaLargura() {
 
 DWORD WINAPI recebeMensagemMem(LPVOID) {
 	DadosCtrl cDados;
-
-	Mensagem msg;
+	Mensagem msg, msg_aux;
 	BOOL ret;
 	DWORD n;
 	HANDLE hT;
 
+	iniciaMemMsg(&cDados);
+
+	wcscpy_s(msg_aux.msg, TEXT("login teste"));
+	wcscpy_s(msg_aux.nomeJogador, TEXT("teste"));
+	escreveMsg(&cDados, &msg_aux);
+
+	wcscpy_s(msg_aux.msg, TEXT("move direita"));
+	wcscpy_s(msg_aux.nomeJogador, TEXT("teste"));
+	escreveMsg(&cDados, &msg_aux);
+
 	while (1) {
-		WaitForSingleObject(&cDados.hEventMsg, INFINITE);
-		ResetEvent(&cDados.hEventMsg);
 
 		leMsg(&cDados, &msg);
 		CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)trataMensagem, &msg, 0, NULL);
@@ -258,16 +273,25 @@ DWORD WINAPI trataMensagem(LPVOID * m) {
 	Mensagem * msg = (Mensagem*)m;
 	TCHAR * token;
 	const char delimiter[2] = " ";
-	TCHAR * pedido[2];
-	int n = 0, i;
+	TCHAR pedido[2][24];
+	int n = 0, i, pos=0;
 
 	for (int i = 0; i < (sizeof(msg->msg)/sizeof(TCHAR)); i++)	{
 		if (msg->msg[i] == ' ') {
 			pedido[n][i] = '\0';
 			n = 1;
+			pos = i + 1;
+			continue;
 		}
-		pedido[n][i] = msg->msg[i];
+		if (msg->msg[i] == '\0') {
+			pedido[n][i-pos] = msg->msg[i];
+			break;
+		}
+			
+		pedido[n][i-pos] = msg->msg[i];
 	}
+
+	WaitForSingleObject(hMutexJogo, INFINITE);
 
 	if (_tcscmp(pedido[0], TEXT("começar"))==0) {
 		//iniciar jogo
@@ -285,7 +309,7 @@ DWORD WINAPI trataMensagem(LPVOID * m) {
 			}
 		}
 	}
-
+	ReleaseMutex(hMutexJogo);
 }
 
 

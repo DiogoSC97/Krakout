@@ -23,6 +23,8 @@ void leJogo(DadosCtrl * cDados, Jogo * jogo) {
 void leMsg(DadosCtrl * cDados, Mensagem * msg){
 	int pos;
 
+	WaitForSingleObject(cDados->hEventMsg, INFINITE);
+	ResetEvent(cDados->hEventMsg);
 	WaitForSingleObject(cDados->hSemPodeLer, INFINITE);
 	WaitForSingleObject(cDados->hMutexIndiceMsgOut, INFINITE);
 
@@ -52,5 +54,7 @@ void escreveMsg(DadosCtrl * cDados, Mensagem * msg){
 	CopyMemory(&cDados->msg->msgs[pos], msg, sizeof(Mensagem));
 
 	ReleaseSemaphore(cDados->hSemPodeEscrever, 1, NULL);
+
+	SetEvent(cDados->hEventMsg);
 
 }
