@@ -47,7 +47,7 @@
 
 
 	/* ESTADOS */
-	#define ESTADO_INIT						10000	// Estado (início)
+	#define ESTADO_INICIAL					10000	// Estado (início)
 	#define ESTADO_ESPERA_JOGO				10001	// Estado (à espera do início do jogo)
 	#define ESTADO_EM_JOGO					10002	// Estado (jogo a decorrer)
 	#define ESTADO_JOGO_TERMINADO_VITORIA	10003	// Estado (jogo terminado com vitória)
@@ -85,13 +85,17 @@ BOOL continuar;										// Variável de controlo das threads
 int estado;											// Estado do cliente (inicial, a aguardar jogo, em jogo)
 int KEY_LEFT, KEY_RIGHT;							// Teclas para jogo
 
+
+// Dados THREADS
+HANDLE hT_GetDadosJogo;
 #pragma endregion
 
 LRESULT CALLBACK TrataEventos(HWND, UINT, WPARAM, LPARAM);
 bool iniciaMemJogo(DadosCtrl* cDados);
 bool iniciaMemMsg(DadosCtrl* cDados);
-void initVariaveis(); 
-void initDoubleBuffer(HWND hWnd);
+void iniciaVariaveis(); 
+void iniciaThreads();
+void iniciaDoubleBuffer(HWND hWnd);
 void loadUIResources(HWND hWnd);
 void buildImageOnBuffer(HWND hWnd);
 void buildMapOnBuffer(HWND hWnd);
@@ -168,7 +172,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nC
 
 	iniciaMemJogo(&cDados);
 	iniciaMemMsg(&cDados); 
-	initVariaveis();
+	iniciaVariaveis();
 	
 
 	// ============================================================================
@@ -221,7 +225,7 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 		PatBlt(memdc, 0, 0, 800, 600, PATCOPY);*/
 		ReleaseDC(hWnd, hdc);
 
-		initDoubleBuffer(hWnd);
+		iniciaDoubleBuffer(hWnd);
 		loadUIResources(hWnd);
 
 	}break;
@@ -291,7 +295,7 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 	}break;
 
 	case WM_KEYDOWN: {
-		if (estado == ESTADO_INIT) {
+		if (estado == ESTADO_INICIAL) {
 			if (wParam == VK_RETURN) {
 				//FAZER: efetuar as connecções necessárias   -----   ver tp miguel
 				estado = ESTADO_EM_JOGO;
@@ -304,9 +308,9 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 			Mensagem msg;
 
 			if (wParam == VK_LEFT) { 
-					
-				strcpy_s(msg.msg, "move esquerda");
-				strcpy_s(msg.nomeJogador, "Player1");
+				//	fazer isto com inteiros para ser mais simples
+				wcscpy_s(msg.msg, TEXT("move esquerda"));
+				wcscpy_s(msg.nomeJogador, TEXT("Player1"));
 				escreveMsg(&cDados, &msg);
 					
 				//PlaySound(TEXT("nave.wav"), NULL, SND_ASYNC);
@@ -314,8 +318,8 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 
 			else if (wParam == VK_RIGHT){
 					
-				strcpy_s(msg.msg, "move direita");
-				strcpy_s(msg.nomeJogador, "Player1");
+				wcscpy_s(msg.msg, TEXT("move direita"));
+				wcscpy_s(msg.nomeJogador, TEXT("Player1"));
 				escreveMsg(&cDados, &msg);
 			}
 			
@@ -348,7 +352,7 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 
 
 /* Inicializa vari�veis do cliente */
-void initVariaveis() {
+void iniciaVariaveis() {
 
 	estado = ESTADO_EM_JOGO;
 	continuar = true;
@@ -363,13 +367,19 @@ void initVariaveis() {
 }
 
 /* Prepara double buffer */
-void initDoubleBuffer(HWND hWnd) {
+void iniciaDoubleBuffer(HWND hWnd) {
 	hWindowDC = GetDC(hWnd);
 	hBufferDC = CreateCompatibleDC(hWindowDC);
 	hBufferBitmap = CreateCompatibleBitmap(hWindowDC, CLIENT_WIDTH, CLIENT_HEIGHT);
 	SelectObject(hBufferDC, hBufferBitmap);
 	ReleaseDC(hWnd, hWindowDC);
 }
+
+/*
+void iniciaThreads() {
+	hT_GetDadosJogo = CreateThread()
+}
+*/
 
 /* PREPARA RECURSOS DA UI DO CLIENTE_GUI */
 void loadUIResources(HWND hWnd) {
@@ -463,15 +473,12 @@ bool iniciaMemMsg(DadosCtrl* cDados) {
 		return FALSE;
 	}
 
-<<<<<<< HEAD
-=======
 	cDados->hEventMsg = CreateEvent(NULL, TRUE, FALSE, TEXT("EventoMensagem"));
 	if (cDados->hEventMsg == NULL) {
 		_tprintf(TEXT("Erro ao criar o evento relativo às mensagens! (%d)"), GetLastError());
 		return FALSE;
 	}
 
->>>>>>> f655cbe54bce813f82e8b59380a732352d5176b9
 	return TRUE;
 }
 
@@ -482,7 +489,7 @@ void buildImageOnBuffer(HWND hWnd) {
 	// Desenha no buffer, dependendo do estado
 	switch (estado) {
 
-	case ESTADO_INIT:
+	case ESTADO_INICIAL:
 	{
 		hWindowDC = BeginPaint(hWnd, &paintstruct);
 		BitBlt(hBufferDC, 0, 0, 1000, 700, hDeviceContexts[posBgLv2], 0, 0, SRCCOPY);
