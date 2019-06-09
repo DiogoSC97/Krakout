@@ -53,7 +53,7 @@ typedef struct {
 }Mensagem;
 
 typedef struct {
-	TCHAR msgs[12];				//Alterar depois se necessário
+	Mensagem msgs[12];				//Alterar depois se necessário
 	int in, out;
 }MSG_PARTILHADA;
 
