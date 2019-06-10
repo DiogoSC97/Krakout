@@ -1,6 +1,7 @@
 
 #include "pch.h"
-#include "../DLL/DLL.h"
+#include "..\DLL\DLL.h"
+#include "..\DLL\stdafx.h"
 #include "resource.h"
 #include <windows.h>
 #include <tchar.h>
@@ -13,58 +14,12 @@
 #include <wchar.h>
 #include <string.h>
 
-#pragma region DEFINES
-
-//stdafx.h
-	/* DIMENSÕES DA JANELA DO CLIENTE */
-	#define CLIENT_WIDTH		1000	// Largura da janela do cliente em píxeis
-	#define CLIENT_HEIGHT		700		// Altura da janela do cliente em píxeis
-	#define initWindowPosTop	50		// Posição da janela (deslocamento em relação à direita do ecrã)
-	#define initWindowPosLeft	250		// Posição da janela (deslocamento em relação à esquerda do ecrã)
-
-
-
-	/* BITMAPS (POSIÇÔES PARA ARRAYS DE HANDLES E HDC) */
-	#define posBola				0		// Posição do bitmap da bola
-	#define posBarreira			1		// Posição do bitmap da barreira
-	#define posTijAmarelo		2		// Posição do bitmap do tijolo amarelo
-	#define posTijAzul			3		// Posição do bitmap do tijolo azul
-	#define posTijCinza			4		// Posição do bitmap do tijolo cinza
-	#define posTijVerde			5		// Posição do bitmap do tijolo verde
-	#define posTijVermelho		6		// Posição do bitmap do tijolo vermelho
-	#define posBgLv1			7		// Posição do bitmap de fundo do lv1
-	#define posBgLv2			8		// Posição do bitmap de fundo do lv2	
-
-	#define NUM_BITMAPS			9
-
-
-	/* DIMENSOES DOS ITENS */
-	#define TIJOLO_NORMAL_WIDTH			35
-	#define TIJOLO_NORMAL_HEIGHT		20
-	#define BARREIRA_WIDTH				48
-	#define BARREIRA_HEIGHT				9
-	#define BOLA_WIDTH_HEIGHT			30
-
-
-	/* ESTADOS */
-	#define ESTADO_INICIAL					10000	// Estado (início)
-	#define ESTADO_ESPERA_JOGO				10001	// Estado (à espera do início do jogo)
-	#define ESTADO_EM_JOGO					10002	// Estado (jogo a decorrer)
-	#define ESTADO_JOGO_TERMINADO_VITORIA	10003	// Estado (jogo terminado com vitória)
-	#define ESTADO_JOGO_TERMIANDO_PERDIDO	10004	// Estado (jogo terminado com derrota)
-
-
-	/* NÚMERO MAXIMO DE INSTÂNCIAS */
-	#define NUM_MAX_TIJOLOS			24
-	#define NUM_MAX_BOLAS			1
-
-#pragma endregion
 
 #pragma region GLOBALVARIABLES
 
 DadosCtrl cDados;
 Jogo jogo;
-
+HWND hWndBkp;
 
 // UI
 HBITMAP hInitBG;
@@ -99,7 +54,7 @@ void iniciaDoubleBuffer(HWND hWnd);
 void loadUIResources(HWND hWnd);
 void buildImageOnBuffer(HWND hWnd);
 void buildMapOnBuffer(HWND hWnd);
-
+DWORD WINAPI t_GetDadosJogo(LPVOID param);
 
 
 // Nome da classe da janela (para programas de uma só janela, normalmente este nome é
@@ -173,6 +128,9 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nC
 	iniciaMemJogo(&cDados);
 	iniciaMemMsg(&cDados); 
 	iniciaVariaveis();
+	iniciaThreads();
+
+	hWndBkp = hWnd;
 	
 
 	// ============================================================================
@@ -310,7 +268,7 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 			if (wParam == VK_LEFT) { 
 				//	fazer isto com inteiros para ser mais simples
 				wcscpy_s(msg.msg, TEXT("move esquerda"));
-				wcscpy_s(msg.nomeJogador, TEXT("Player1"));
+				wcscpy_s(msg.nomeJogador, TEXT("teste"));
 				escreveMsg(&cDados, &msg);
 					
 				//PlaySound(TEXT("nave.wav"), NULL, SND_ASYNC);
@@ -319,7 +277,7 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 			else if (wParam == VK_RIGHT){
 					
 				wcscpy_s(msg.msg, TEXT("move direita"));
-				wcscpy_s(msg.nomeJogador, TEXT("Player1"));
+				wcscpy_s(msg.nomeJogador, TEXT("teste"));
 				escreveMsg(&cDados, &msg);
 			}
 			
@@ -364,6 +322,8 @@ void iniciaVariaveis() {
 	// UI
 	hdc = NULL;
 	bufferDC = NULL;
+
+	//Jogador
 }
 
 /* Prepara double buffer */
@@ -375,11 +335,33 @@ void iniciaDoubleBuffer(HWND hWnd) {
 	ReleaseDC(hWnd, hWindowDC);
 }
 
-/*
+
 void iniciaThreads() {
-	hT_GetDadosJogo = CreateThread()
+	
+	hT_GetDadosJogo = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)t_GetDadosJogo, NULL, 0, NULL);
+
+	if (hT_GetDadosJogo == NULL) {
+
+		if (MessageBox(hWndBkp, TEXT("Erro a criar threads!"), TEXT("ERRO"), MB_OK | MB_ICONERROR) == IDYES) {
+			PostQuitMessage(1);
+		}
+	}
 }
-*/
+
+
+DWORD WINAPI t_GetDadosJogo(LPVOID param) {
+	do {
+
+		leJogo(&cDados, &jogo);
+		estado = ESTADO_EM_JOGO;
+
+		// Atualiza mapa
+		InvalidateRect(hWndBkp, NULL, FALSE);
+
+	} while (continuar);
+
+	return 0;
+}
 
 /* PREPARA RECURSOS DA UI DO CLIENTE_GUI */
 void loadUIResources(HWND hWnd) {
@@ -537,7 +519,7 @@ void buildMapOnBuffer(HWND hWnd) {
 
 	//Background
 	hWindowDC = BeginPaint(hWnd, &paintstruct);
-	BitBlt(hBufferDC, 0, 0, 1000, 700, hDeviceContexts[posBgLv1], 0, 0, SRCCOPY);
+	BitBlt(hBufferDC, 0, 0, 1000, 700, hDeviceContexts[posBgLv2], 0, 0, SRCCOPY);
 
 	//Tijolos
 	for (i = 0; i < NUM_MAX_TIJOLOS; i++) {
@@ -548,21 +530,10 @@ void buildMapOnBuffer(HWND hWnd) {
 
 	//Bola
 	for (i = 0; i < NUM_MAX_BOLAS; i++) {		
-		TransparentBlt(hBufferDC, jogo.bolas[i].y, jogo.bolas[i].x, BOLA_WIDTH_HEIGHT, BOLA_WIDTH_HEIGHT, hDeviceContexts[posBola], 0, 0, BOLA_WIDTH_HEIGHT, BOLA_WIDTH_HEIGHT, RGB(255, 255, 255));
+		TransparentBlt(hBufferDC, jogo.bolas[i].y, jogo.bolas[i].x, 25, 25, hDeviceContexts[posBola], 0, 0, BOLA_WIDTH_HEIGHT, BOLA_WIDTH_HEIGHT, RGB(255, 255, 255));
 	}
+
+	//Barreira
+	TransparentBlt(hBufferDC, jogo.barreiras[0].y, jogo.barreiras[0].x, BARREIRA_BIG_WIDTH, BARREIRA_BIG_HEIGHT, hDeviceContexts[posBarreira], 0, 0, BARREIRA_WIDTH, BARREIRA_HEIGHT, RGB(255, 255, 255));
+
 }
-
-
-/*
-
-	
-	while (true)
-	{
-		leJogo(&cDados, &jogo);
-		system("cls");
-		gotoxy(jogo.bolas[0].x, jogo.bolas[0].y);
-		_tprintf(TEXT("O"));
-	}
-
-
-*/

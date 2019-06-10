@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "../DLL/DLL.h"
+#include "..\DLL\stdafx.h"
 #include <iostream>
 #include <windows.h>
 #include <tchar.h>
@@ -16,8 +17,6 @@ int setTop10(TCHAR * top10);
 TCHAR * getTop10();
 bool iniciaMemJogo(DadosCtrl * cDados);
 DWORD WINAPI Thread(LPVOID);
-int consolaAltura();
-int consolaLargura();
 DWORD WINAPI trataMensagem(LPVOID * m);
 DWORD WINAPI recebeMensagemMem(LPVOID);
 void moveJogador(TCHAR * nomeJogador, TCHAR * direcao);
@@ -28,6 +27,7 @@ int verificaColisaoBarreiras(int x, int y);
 
 Jogo j;	//Temp
 HANDLE hMutexJogo;
+int limX, limY;
 
 int _tmain(int argc, TCHAR *argv[]) {
 	
@@ -42,6 +42,9 @@ int _tmain(int argc, TCHAR *argv[]) {
 	TCHAR resp;
 	DWORD threadId; //Id da thread a ser criada
 	HANDLE hT,hTMsg; //HANDLE/ponteiro para a thread a ser criada
+
+	limX = CLIENT_WIDTH - 45;
+	limY = CLIENT_HEIGHT - 85;
 
 	hMutexJogo = CreateMutex(NULL, FALSE, TEXT("mutexJogoGlobal"));
 	if (hMutexJogo == NULL) {
@@ -191,7 +194,7 @@ bool iniciaMemMsg(DadosCtrl * cDados) {
 
 
 DWORD WINAPI Thread(LPVOID) {
-	int i, x, y, limX, limY;
+	int i, x, y;
 	DadosCtrl cDados;
 	Jogo jogo;
 	int flagX, flagY;
@@ -200,10 +203,8 @@ DWORD WINAPI Thread(LPVOID) {
 
 	srand((int)time(NULL));
 
-	limX = consolaLargura();
-	limY = consolaAltura();
-	x = rand() % consolaLargura();
-	y = rand() % consolaAltura();
+	x = rand() % limX;
+	y = rand() % limY;
 
 	flagX = 0; flagY = 0;
 	while (1) {
@@ -217,31 +218,15 @@ DWORD WINAPI Thread(LPVOID) {
 		if (y > limY - 2 || verificaColisaoBarreiras(x, y)) flagY = 1;
 		if (y < 0 || verificaColisaoTijolos(x, y)) flagY = 0;
 
-		jogo.bolas[0].x = x;
-		jogo.bolas[0].y = y;
+		j.bolas[0].x = y;
+		j.bolas[0].y = x;
 		
-		escreveJogo(&cDados, &jogo);
-		Sleep(16.66667);
+		escreveJogo(&cDados, &j);
+		Sleep(4.09);
 	}
 
 	return 0;
 
-}
-
-int consolaAltura() {
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-
-	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-
-	return csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-}
-
-int consolaLargura() {
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-
-	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-
-	return csbi.srWindow.Right - csbi.srWindow.Left + 1;
 }
 
 DWORD WINAPI recebeMensagemMem(LPVOID) {
@@ -317,7 +302,7 @@ void moveBola(int x, int y, int nBola) {
 
 	Bola b = j.bolas[nBola];
 
-	if (x > 0 && x < consolaAltura() && y > 0 && y < consolaLargura()) {			//Verifica limites do campo de jogo
+	if (x > 0 && x < limX && y > 0 && y < limY) {			//Verifica limites do campo de jogo
 		j.bolas[nBola].x = x;
 		j.bolas[nBola].y = y;
 	}
@@ -341,7 +326,7 @@ int verificaColisaoBarreiras(int x, int y) {// 1 - muda direcção 	0 - não mud
 
 	for (int i = 0; i < (sizeof(j.barreiras) / sizeof(Barreira)); i++)				// Verifica colisão com barreiras
 	{
-		if (y < (j.barreiras[i].y + 9) && y > j.barreiras[i].y && x < (j.barreiras[i].x + j.barreiras[i].tam) && x > j.barreiras[i].x) {
+		if (y + 25 < (j.barreiras[i].y + 9) && y + 25 > j.barreiras[i].y && x < (j.barreiras[i].x + j.barreiras[i].tam) && x > j.barreiras[i].x) {
 			return 1;
 		}
 	}
@@ -359,7 +344,12 @@ void moveJogador(TCHAR * nomeJogador, TCHAR * direcao) {
 
 
 	if (j.barreiras[1].vel == -1) {										// Se só estiver um jogador em campo
-		return;
+
+		if (_tcscmp(direcao, TEXT("direita")) == 0)
+			j.barreiras[i].y += 10;									//troquei
+			
+		else if (_tcscmp(direcao, TEXT("esquerda")) == 0)
+			j.barreiras[i].y -= 10;									//troquei
 	}
 	else {
 		if (i == 0) {
@@ -372,11 +362,11 @@ void moveJogador(TCHAR * nomeJogador, TCHAR * direcao) {
 		}
 
 		if (_tcscmp(direcao, TEXT("direita")) == 0)
-			if (bAtual.x < consolaLargura() && (bAtual.x+bAtual.tam+1) < bNaoAtual.x)
+			if (bAtual.x < limX && (bAtual.x+ BARREIRA_BIG_WIDTH+1) < bNaoAtual.x)
 				j.barreiras[i].x += 1;
 
 			else if (_tcscmp(direcao, TEXT("esquerda")) == 0)
-				if (bAtual.x > 0 && bAtual.x > (bNaoAtual.x+bAtual.tam+1))
+				if (bAtual.x > 0 && bAtual.x > (bNaoAtual.x+ BARREIRA_BIG_WIDTH +1))
 					j.barreiras[i].x -= 1;
 	}
 }
@@ -385,16 +375,16 @@ void setupJogo() {
 	
 	for (int i = 0; i < 2; i++){
 		wcscpy_s(j.jogadores[i].nome, TEXT(""));
-		j.barreiras[i].vel = 1;
-		j.barreiras[i].tam = 48;
-		j.barreiras[i].y = consolaAltura() - 9;
-		j.barreiras[i].x = consolaLargura() - j.barreiras[i].tam;
+		j.barreiras[i].vel = 10;
+		j.barreiras[i].tam = BARREIRA_BIG_WIDTH;
+		j.barreiras[i].x = limY - BARREIRA_BIG_HEIGHT;							//troquei
+		j.barreiras[i].y = limX - BARREIRA_BIG_WIDTH;			//troquei
 	}
-
+	j.barreiras[1].vel = -1;
 	for (int i = 0; i < 1; i++){
-		for (int k = 0; k < (consolaLargura() / 35); k++){
-			j.tijolos[i].y = i * 20;
-			j.tijolos[i].x = k * 35;
+		for (int k = 0; k < (limX / 35); k++){
+			j.tijolos[i].x = i * 20;				//troquei
+			j.tijolos[i].y = k * 35;				//troquei
 			j.tijolos[i].colisoes = 1;
 		}
 	}
