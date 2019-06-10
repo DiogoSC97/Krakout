@@ -54,6 +54,8 @@ void iniciaDoubleBuffer(HWND hWnd);
 void loadUIResources(HWND hWnd);
 void buildImageOnBuffer(HWND hWnd);
 void buildMapOnBuffer(HWND hWnd);
+void terminar();
+void fechaHandles();
 DWORD WINAPI t_GetDadosJogo(LPVOID param);
 
 
@@ -131,7 +133,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nC
 	iniciaThreads();
 
 	hWndBkp = hWnd;
-	
 
 	// ============================================================================
 	// 5. Loop de Mensagens
@@ -218,48 +219,13 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 			break;*/
 	}break;
 
-	case WM_LBUTTONDOWN:{
-		x = LOWORD(lParam);
-		y = HIWORD(lParam);
-		hdc = GetDC(hWnd);
-		TextOut(hdc, x, y, &c, 1);
-		ReleaseDC(hWnd, hdc);
-	}break;
-
-	case  WM_MBUTTONUP:{
-
-		InvalidateRect(hWnd, NULL, 1);
-	}break;
-
-	case WM_RBUTTONDOWN: {
-		HDC auxdc;
-		hdc = GetDC(hWnd);
-		auxdc = CreateCompatibleDC(hdc);
-		//Ativar um elemento dos tipos: Fonte, Fundo, Linha, Bitmap no device context em questão
-		SelectObject(auxdc, hbmp);
-		BitBlt(hdc, LOWORD(lParam), HIWORD(lParam), 66/*largura*/, 66, auxdc, 0, 0, SRCCOPY);
-		//Tudo o que se escreve no fundo da janela principal se escreve no DC da memória
-		BitBlt(memdc, LOWORD(lParam), HIWORD(lParam), 66/*largura*/, 66, auxdc, 0, 0, SRCCOPY);
-		DeleteDC(auxdc);
-		ReleaseDC(hWnd, hdc);
-	}break;
-
-	case WM_CHAR: {
-		//Premiu uma tecla com representação ASCII
-		c = wParam;
-		hdc = GetDC(hWnd);
-		TextOut(hdc, x, y, &c, 1);
-		ReleaseDC(hWnd, hdc);
-	}break;
-
 	case WM_KEYDOWN: {
 		if (estado == ESTADO_INICIAL) {
 			if (wParam == VK_RETURN) {
-				//FAZER: efetuar as connecções necessárias   -----   ver tp miguel
+
 				estado = ESTADO_EM_JOGO;
 				InvalidateRect(hWnd, NULL, TRUE);
-					
-				//resume de uma thread
+				
 			}
 		}
 		else if (estado == ESTADO_EM_JOGO) {
@@ -291,14 +257,15 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 
 	//Descomentar para entregar
 
-	//case WM_CLOSE: {
-	//	if (MessageBox(hWnd, TEXT("	Quer mesmo sair?"), TEXT("Fechar Cliente KRAKOUT"), MB_YESNO | MB_ICONASTERISK) == IDYES) {
-	//		// envia mensagem
-	//		continuar = false;			//controlo de threads (falta implementar)
-	//		Sleep(5);
-	//		PostQuitMessage(0);
-	//	}
-	//}break;
+	case WM_CLOSE: {
+		if (MessageBox(hWnd, TEXT("	Quer mesmo sair?"), TEXT("Fechar Cliente KRAKOUT"), MB_YESNO | MB_ICONASTERISK) == IDYES) {
+			// envia mensagem
+
+			continuar = false;			//controlo de threads (falta implementar)
+			Sleep(5);
+			PostQuitMessage(0);
+		}
+	}break;
 
 	default: {
 		return DefWindowProc(hWnd, messg, wParam, lParam);
@@ -312,7 +279,7 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 /* Inicializa vari�veis do cliente */
 void iniciaVariaveis() {
 
-	estado = ESTADO_EM_JOGO;
+	estado = ESTADO_INICIAL;
 	continuar = true;
 
 	//Teclas
@@ -478,35 +445,12 @@ void buildImageOnBuffer(HWND hWnd) {
 	}
 	break;
 
-	case ESTADO_ESPERA_JOGO:
-	{
-		hWindowDC = BeginPaint(hWnd, &paintstruct);
-		BitBlt(hdc, 0, 0, 1000, 700, hDeviceContexts[posBgLv1], 0, 0, SRCCOPY);
-	}
-	break;
-
 	case ESTADO_EM_JOGO:
 	{
 		//BitBlt(hdc, 0, 0, 1000, 700, hDeviceContexts[posBgLv1], 0, 0, SRCCOPY);
 		// Constrói mapa do jogo
 		buildMapOnBuffer(hWnd);
 		//buildInfoBarOnBuffer(hWnd);
-	}
-	break;
-
-	case ESTADO_JOGO_TERMINADO_VITORIA:
-	{
-		hWindowDC = BeginPaint(hWnd, &paintstruct);
-		//BitBlt(hBufferDC, 0, 0, 1000, 700, hDeviceContexts[posGameWon], 0, 0, SRCCOPY);
-		// TODO: Imprime tabela de classificações (função para ser também chamada em ESTADO_JOGO_TERMIANDO_PERDIDO)
-	}
-	break;
-
-	case ESTADO_JOGO_TERMIANDO_PERDIDO:
-	{
-		hWindowDC = BeginPaint(hWnd, &paintstruct);
-		//BitBlt(hBufferDC, 0, 0, 1000, 700, hDeviceContexts[posGameLost], 0, 0, SRCCOPY);
-		// TODO: Imprime tabela de classificações (função para ser também chamada em ESTADO_JOGO_TERMINADO_VITORIA)
 	}
 	break;
 	}
@@ -536,4 +480,19 @@ void buildMapOnBuffer(HWND hWnd) {
 	//Barreira
 	TransparentBlt(hBufferDC, jogo.barreiras[0].y, jogo.barreiras[0].x, BARREIRA_BIG_WIDTH, BARREIRA_BIG_HEIGHT, hDeviceContexts[posBarreira], 0, 0, BARREIRA_WIDTH, BARREIRA_HEIGHT, RGB(255, 255, 255));
 
+}
+
+void terminar() {
+
+	continuar = false;
+
+	WaitForSingleObject(hT_GetDadosJogo, INFINITE);
+
+	fechaHandles();
+}
+
+void fechaHandles() {
+	if (hT_GetDadosJogo != NULL)
+		CloseHandle(hT_GetDadosJogo);
+	return;
 }
