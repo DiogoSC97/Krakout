@@ -181,3 +181,7 @@ Cliente/Debug/Cliente.Build.CppClean.log
 .vs/Krakout/v16/Browse.VC.opendb
 Krakout/Debug/Krakout.vcxproj.FileListAbsolute.txt
 DLL/Debug/DLL.tlog/unsuccessfulbuild
+Debug/DLL.lib
+Debug/Servidor.exe
+Debug/DLL.dll
+Debug/Cliente.exe
