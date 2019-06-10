@@ -24,6 +24,7 @@ void setupJogo();
 void moveBola(int x, int y, int nBola);
 int verificaColisaoTijolos(int x, int y);
 int verificaColisaoBarreiras(int x, int y);
+int verificaPerdeVida(int x, int y);
 
 Jogo j;	//Temp
 HANDLE hMutexJogo;
@@ -215,8 +216,8 @@ DWORD WINAPI Thread(LPVOID) {
 
 		if (x > limX) flagX = 1;
 		if (x < 0)flagX = 0;
-		if (y > limY - 2 || verificaColisaoBarreiras(x, y)) flagY = 1;
-		if (y < 0 || verificaColisaoTijolos(x, y)) flagY = 0;
+		if (y > limY - 2 || verificaColisaoBarreiras(y, x)) flagY = 1;
+		if (y < 0 || verificaColisaoTijolos(y, x)) flagY = 0;
 
 		j.bolas[0].x = y;
 		j.bolas[0].y = x;
@@ -314,7 +315,7 @@ int verificaColisaoTijolos(int x, int y) {	// 1 - muda direcção	0 - não muda 
 	
 	for (int i = 0; i < (sizeof(j.tijolos)/sizeof(Tijolo)); i++)				// Verifica colisão com tijolos
 	{
-		if (x < (j.tijolos[i].x + 35) && x > j.tijolos[i].x && y < (j.tijolos[i].y + 20) && y > j.tijolos[i].y && j.tijolos[i].colisoes > 0) {
+		if (x < (j.tijolos[i].x + 35) && (x + 25) > j.tijolos[i].x && y < j.tijolos[i].y && j.tijolos[i].colisoes > 0) {
 			j.tijolos[i].colisoes--;
 			return 1;
 		}
@@ -326,10 +327,19 @@ int verificaColisaoBarreiras(int x, int y) {// 1 - muda direcção 	0 - não mud
 
 	for (int i = 0; i < (sizeof(j.barreiras) / sizeof(Barreira)); i++)				// Verifica colisão com barreiras
 	{
-		if (y + 25 < (j.barreiras[i].y + 9) && y + 25 > j.barreiras[i].y && x < (j.barreiras[i].x + j.barreiras[i].tam) && x > j.barreiras[i].x) {
+		if (x < (j.barreiras[i].x + BARREIRA_BIG_WIDTH) && (x + 25) > j.barreiras[i].x && (y + 25) > j.barreiras[i].y) {
 			return 1;
 		}
 	}
+	return 0;
+}
+
+int verificaPerdeVida(int x, int y) {
+
+	if ((y + 25) > limY) {
+		return 1;
+	}
+
 	return 0;
 }
 
@@ -347,7 +357,7 @@ void moveJogador(TCHAR * nomeJogador, TCHAR * direcao) {
 
 		if (_tcscmp(direcao, TEXT("direita")) == 0)
 			j.barreiras[i].y += 10;									//troquei
-			
+
 		else if (_tcscmp(direcao, TEXT("esquerda")) == 0)
 			j.barreiras[i].y -= 10;									//troquei
 	}
@@ -362,13 +372,14 @@ void moveJogador(TCHAR * nomeJogador, TCHAR * direcao) {
 		}
 
 		if (_tcscmp(direcao, TEXT("direita")) == 0)
-			if (bAtual.x < limX && (bAtual.x+ BARREIRA_BIG_WIDTH+1) < bNaoAtual.x)
+			if (bAtual.x < limX && (bAtual.x + BARREIRA_BIG_WIDTH + 1) < bNaoAtual.x)
 				j.barreiras[i].x += 1;
 
 			else if (_tcscmp(direcao, TEXT("esquerda")) == 0)
-				if (bAtual.x > 0 && bAtual.x > (bNaoAtual.x+ BARREIRA_BIG_WIDTH +1))
+				if (bAtual.x > 0 && bAtual.x > (bNaoAtual.x + BARREIRA_BIG_WIDTH + 1))
 					j.barreiras[i].x -= 1;
 	}
+
 }
 
 void setupJogo() {
@@ -382,10 +393,10 @@ void setupJogo() {
 	}
 	j.barreiras[1].vel = -1;
 	for (int i = 0; i < 1; i++){
-		for (int k = 0; k < (limX / 35); k++){
-			j.tijolos[i].x = i * 20;				//troquei
-			j.tijolos[i].y = k * 35;				//troquei
-			j.tijolos[i].colisoes = 1;
+		for (int k = 0; k < (limX / TIJOLO_BIG_WIDTH); k++){
+			j.tijolos[k].x = i * TIJOLO_NORMAL_HEIGHT;				//troquei
+			j.tijolos[k].y = k * TIJOLO_NORMAL_WIDTH;				//troquei
+			j.tijolos[k].colisoes = 1;
 		}
 	}
 }
